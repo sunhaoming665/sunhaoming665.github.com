@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
@@ -78,132 +78,41 @@
         <button onclick="generateRandom()">生成随机数</button>
         <div id="result"></div>
     </div>
-<script>
-// 改进的Mersenne Twister算法实现
-class EnhancedMersenneTwister {
-    constructor(seed) {
-        this.N = 624;
-        this.M = 397;
-        this.MATRIX_A = 0x9908b0df;
-        this.UPPER_MASK = 0x80000000;
-        this.LOWER_MASK = 0x7fffffff;
-        this.mt = new Array(this.N);
-        this.mti = this.N + 1;
-        this.seed = seed;
-        this.init();
-    }
 
-    init() {
-        let s = this.seed.toString().split('').reduce((acc, char) => acc * 256 + char.charCodeAt(0), 0);
-        s ^= Date.now();
-        s |= 1; // 确保非零
-        
-        this.mt[0] = s >>> 0;
-        for (let i = 1; i < this.N; i++) {
-            const s = this.mt[i-1] ^ (this.mt[i-1] >>> 30);
-            this.mt[i] = ((s & 0xffff0000) * 1812433253 + (s & 0x0000ffff) * 1812433253) + i;
-            this.mt[i] >>>= 0;
-        }
-        this.mti = this.N;
-    }
-
-    next() {
-        if (this.mti >= this.N) {
-            const kk = 0;
-            if (this.mti === this.N + 1) this.init();
-            
-            for (; kk < this.N - this.M; kk++) {
-                const y = (this.mt[kk] & this.UPPER_MASK) | (this.mt[kk+1] & this.LOWER_MASK);
-                this.mt[kk] = this.mt[kk + this.M] ^ (y >>> 1) ^ 0x1b9d2659;
+    <script>
+        // 线性同余生成器（LCG）实现伪随机数
+        class Random {
+            constructor(seed = Date.now()) {
+                this.seed = seed;
             }
-            for (; kk < this.N - 1; kk++) {
-                const y = (this.mt[kk] & this.UPPER_MASK) | (this.mt[kk+1] & this.LOWER_MASK);
-                this.mt[kk] = this.mt[kk + (this.M - this.N)] ^ (y >>> 1) ^ 0x1b9d2659;
+            next() {
+                const a = 1664525;
+                const c = 1013904223;
+                const m = Math.pow(2, 32);
+                this.seed = (a * this.seed + c) % m;
+                return this.seed / m;
             }
-            const y = (this.mt[this.N-1] & this.UPPER_MASK) | (this.mt[0] & this.LOWER_MASK);
-            this.mt[this.N-1] = this.mt[this.M-1] ^ (y >>> 1) ^ 0x1b9d2659;
-            this.mti = 0;
         }
 
-        const y = this.mt[this.mti++];
-        y ^= (y >>> 11);
-        y ^= ((y << 7) & 0x9d2c5680);
-        y ^= ((y << 15) & 0xefc60000);
-        y ^= (y >>> 18);
-        return y >>> 0;
-    }
+        function generateRandom() {
+            const seedInput = document.getElementById('seed').value;
+            const min = parseInt(document.getElementById('min').value, 10);
+            const max = parseInt(document.getElementById('max').value, 10);
 
-    getInt32() {
-        return this.next() | (this.next() << 16);
-    }
-}
+            // 输入验证
+            if (isNaN(min) || isNaN(max) || min >= max) {
+                alert('请输入有效范围（最小值 < 最大值）！');
+                return;
+            }
 
-// 加密安全随机数生成器
-async function getSecureRandom() {
-    const array = new Uint8Array(4);
-    await window.crypto.getRandomValues(array);
-    return array.reduce((acc, byte) => acc * 256 + byte, 0);
-}
+            // 使用种子初始化随机数生成器
+            const random = new Random(seedInput || Date.now());
+            const randomNumber = Math.floor(random.next() * (max - min + 1)) + min;
 
-// 哈希处理函数（SHA-256）
-async function hashValue(value) {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(value.toString());
-    const hashBuffer = await window.crypto.subtle.digest('SHA-256', data);
-    return hashBuffer.reduce((acc, byte) => acc * 256 + byte, 0);
-}
-
-// 主生成函数
-async function generateAdvancedRandom() {
-    const seedInput = document.getElementById('seed').value.trim();
-    const min = parseInt(document.getElementById('min').value, 10);
-    const max = parseInt(document.getElementById('max').value, 10);
-
-    // 输入验证
-    if (isNaN(min) || isNaN(max) || min >= max) {
-        alert('请输入有效范围（最小值 < 最大值）！');
-        return;
-    }
-
-    // 生成组合种子
-    let seed;
-    if (seedInput) {
-        seed = seedInput;
-    } else {
-        const secureRandom = await getSecureRandom();
-        seed = `${secureRandom}-${Date.now()}-${await getSecureRandom()}`;
-    }
-
-    // 初始化随机数生成器
-    const rng = new EnhancedMersenneTwister(seed);
-    
-    // 生成基础随机数
-    let raw = rng.getInt32() % (max - min + 1);
-    
-    // 哈希增强随机性
-    const hashed = await hashValue(raw);
-    const final = hashed % (max - min + 1);
-    
-    // 双重校验机制
-    const final2 = rng.getInt32() % (max - min + 1);
-    const result = Math.min(final, final2) + min;
-
-    // 显示结果
-    document.getElementById('result').textContent = `随机数：${result}`;
-    document.getElementById('debugInfo').innerHTML = `
-        <small>种子：${seed}</small><br>
-        <small>基础随机值：${raw}</small><br>
-        <small>哈希值：${hashed.toString('hex')}</small><br>
-        <small>最终校验值：${final2}</small>
-    `;
-}
-
-// 初始化默认种子
-(async () => {
-    const secureRandom = await getSecureRandom();
-    document.getElementById('seed').value = `auto-${Date.now()}-${secureRandom}`;
-})();
-</script>
+            // 显示结果
+            document.getElementById('result').textContent = `随机数：${randomNumber}`;
+        }
+    </script>
     <div class="power-by">power by GitHub Pages</div>
 </body>
 </html>
