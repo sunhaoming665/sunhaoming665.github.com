@@ -1,20 +1,109 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>随机数生成器</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+            margin: 0;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        input, button {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        #result {
+            margin-top: 30px;
+            font-size: 24px;
+            color: #28a745;
+        }
+    </style>
 </head>
 <body>
-    <h1>1到47随机数生成器</h1>
-    <button onclick="generateRandom()">点击生成</button>
-    <p>随机数：<span id="result"></span></p>
+    <div class="container">
+        <h2>随机数生成器</h2>
+        <div class="form-group">
+            <label for="seed">随机种子（默认按时间生成）：</label>
+            <input type="text" id="seed" placeholder="输入种子值">
+        </div>
+        <div class="form-group">
+            <label for="min">最小值：</label>
+            <input type="number" id="min" value="1">
+        </div>
+        <div class="form-group">
+            <label for="max">最大值：</label>
+            <input type="number" id="max" value="47">
+        </div>
+        <button onclick="generateRandom()">生成随机数</button>
+        <div id="result"></div>
+    </div>
 
     <script>
+        // 线性同余生成器（LCG）实现伪随机数
+        class Random {
+            constructor(seed = Date.now()) {
+                this.seed = seed;
+            }
+            next() {
+                const a = 1664525;
+                const c = 1013904223;
+                const m = Math.pow(2, 32);
+                this.seed = (a * this.seed + c) % m;
+                return this.seed / m;
+            }
+        }
+
         function generateRandom() {
-            // 生成1到47的随机整数
-            const randomNumber = Math.floor(Math.random() * 47) + 1;
-            // 更新页面显示
-            document.getElementById('result').textContent = randomNumber;
+            const seedInput = document.getElementById('seed').value;
+            const min = parseInt(document.getElementById('min').value, 10);
+            const max = parseInt(document.getElementById('max').value, 10);
+
+            // 输入验证
+            if (isNaN(min) || isNaN(max) || min >= max) {
+                alert('请输入有效范围（最小值 < 最大值）！');
+                return;
+            }
+
+            // 使用种子初始化随机数生成器
+            const random = new Random(seedInput || Date.now());
+            const randomNumber = Math.floor(random.next() * (max - min + 1)) + min;
+
+            // 显示结果
+            document.getElementById('result').textContent = `随机数：${randomNumber}`;
         }
     </script>
 </body>
