@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>随机数生成器</title>
+    <title>终极随机数生成器</title>
     <style>
         :root {
             --primary: #6366f1;
@@ -33,7 +33,6 @@
             width: min(90%, 400px);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.3);
-            transition: transform 0.3s ease;
         }
 
         h2 {
@@ -65,7 +64,6 @@
             margin-bottom: 0.5rem;
             color: var(--text);
             font-weight: 500;
-            text-align: left;
         }
 
         input {
@@ -127,9 +125,9 @@
             border-radius: 0.75rem;
             font-size: 1.5rem;
             font-weight: 700;
+            text-align: center;
             opacity: 0;
             transform: translateY(10px);
-            text-align: center;
         }
 
         .result-success {
@@ -142,6 +140,21 @@
             background: rgba(239, 68, 68, 0.1);
             color: var(--error);
             animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) forwards;
+        }
+
+        .validation-message {
+            color: var(--error);
+            font-size: 0.875rem;
+            padding: 0.25rem 0;
+            height: 0;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .validation-visible {
+            height: auto;
+            opacity: 1;
+            animation: slideDown 0.3s ease;
         }
 
         .power-by {
@@ -165,6 +178,11 @@
             75% { transform: translateX(8px); }
         }
 
+        @keyframes slideDown {
+            from { transform: translateY(-5px); }
+            to { transform: translateY(0); }
+        }
+
         @media (max-width: 480px) {
             .container {
                 padding: 1.5rem;
@@ -182,14 +200,17 @@
         <div class="form-group">
             <label for="seed">🎲 随机种子</label>
             <input type="text" id="seed" placeholder="默认使用时间戳">
+            <div class="validation-message" id="seedError"></div>
         </div>
         <div class="form-group">
             <label for="min">最小值</label>
             <input type="number" id="min" value="1">
+            <div class="validation-message" id="minError"></div>
         </div>
         <div class="form-group">
             <label for="max">最大值</label>
             <input type="number" id="max" value="47">
+            <div class="validation-message" id="maxError"></div>
         </div>
         <button onclick="generateRandom()" id="generateBtn">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -206,7 +227,7 @@
     <script>
         class LCG {
             constructor(seed = Date.now()) {
-                this.seed = seed;
+                this.seed = Number(seed) || Date.now();
                 this.a = 1664525;
                 this.c = 1013904223;
                 this.m = Math.pow(2, 32);
@@ -218,93 +239,131 @@
             }
         }
 
+        const elements = {
+            seed: document.getElementById('seed'),
+            min: document.getElementById('min'),
+            max: document.getElementById('max'),
+            generateBtn: document.getElementById('generateBtn'),
+            result: document.getElementById('result'),
+            errors: {
+                seed: document.getElementById('seedError'),
+                min: document.getElementById('minError'),
+                max: document.getElementById('maxError')
+            }
+        };
+
         let currentAnimation = null;
-        const generateBtn = document.getElementById('generateBtn');
-        const resultElement = document.getElementById('result');
 
-        function animateNumber(finalValue, duration = 800) {
-            let start = null;
-            const initialValue = 0;
-            
-            if (currentAnimation) {
-                cancelAnimationFrame(currentAnimation);
-                resultElement.textContent = '';
-            }
-
-            function step(timestamp) {
-                if (!start) start = timestamp;
-                const progress = timestamp - start;
-                const ratio = Math.min(progress / duration, 1);
-                
-                const current = Math.floor(initialValue + ratio * (finalValue - initialValue));
-                resultElement.textContent = `随机数：${current}`;
-                
-                if (ratio < 1) {
-                    currentAnimation = requestAnimationFrame(step);
-                } else {
-                    currentAnimation = null;
-                }
-            }
-            currentAnimation = requestAnimationFrame(step);
+        function showError(element, message) {
+            element.classList.add('validation-visible');
+            element.textContent = message;
+            setTimeout(() => element.classList.remove('validation-visible'), 3000);
         }
 
         function validateInputs() {
-            const min = parseInt(document.getElementById('min').value, 10);
-            const max = parseInt(document.getElementById('max').value, 10);
-            
-            if (isNaN(min) || isNaN(max) || min >= max) {
-                document.querySelectorAll('input').forEach(input => {
-                    input.classList.add('input-error');
-                    setTimeout(() => input.classList.remove('input-error'), 400);
-                });
-                return false;
+            let isValid = true;
+            const values = {
+                seed: elements.seed.value.trim(),
+                min: Number(elements.min.value),
+                max: Number(elements.max.value)
+            };
+
+            // 验证最小值
+            if (isNaN(values.min) || values.min < 0) {
+                showError(elements.errors.min, "请输入有效的正数");
+                elements.min.classList.add('input-error');
+                isValid = false;
             }
-            return true;
+
+            // 验证最大值
+            if (isNaN(values.max) || values.max > Number.MAX_SAFE_INTEGER) {
+                showError(elements.errors.max, "数值过大");
+                elements.max.classList.add('input-error');
+                isValid = false;
+            }
+
+            // 验证范围
+            if (values.min >= values.max) {
+                showError(elements.errors.min, "必须小于最大值");
+                showError(elements.errors.max, "必须大于最小值");
+                elements.min.classList.add('input-error');
+                elements.max.classList.add('input-error');
+                isValid = false;
+            }
+
+            // 验证随机种子
+            if (values.seed && !/^[\d\-]+$/.test(values.seed)) {
+                showError(elements.errors.seed, "只允许数字和减号");
+                elements.seed.classList.add('input-error');
+                isValid = false;
+            }
+
+            return isValid;
+        }
+
+        function animateNumber(finalValue) {
+            let current = 0;
+            const duration = 800;
+            const startTime = Date.now();
+
+            function update() {
+                const progress = Date.now() - startTime;
+                const ratio = Math.min(progress / duration, 1);
+                current = Math.floor(easeOutQuad(ratio) * finalValue);
+                elements.result.textContent = `随机数：${current}`;
+                
+                if (ratio < 1) {
+                    requestAnimationFrame(update);
+                }
+            }
+
+            function easeOutQuad(t) {
+                return t * (2 - t);
+            }
+
+            update();
         }
 
         async function generateRandom() {
+            // 重置状态
+            elements.result.className = '';
+            document.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
+            document.querySelectorAll('.validation-message').forEach(el => el.classList.remove('validation-visible'));
+
+            if (!validateInputs()) {
+                elements.result.className = 'result-error';
+                elements.result.textContent = '❌ 输入有误';
+                return;
+            }
+
             try {
-                // 禁用按钮防止重复点击
-                generateBtn.disabled = true;
-                resultElement.className = '';
-                
-                if (!validateInputs()) {
-                    resultElement.className = 'result-error';
-                    resultElement.textContent = '❌ 无效的数值范围';
-                    return;
-                }
+                elements.generateBtn.disabled = true;
+                elements.result.textContent = '生成中...';
 
-                // 显示加载状态
-                resultElement.textContent = '生成中...';
-                
-                // 异步生成防止阻塞
-                const randomNumber = await new Promise(resolve => {
-                    setTimeout(() => {
-                        const seed = document.getElementById('seed').value || Date.now();
-                        const min = parseInt(document.getElementById('min').value, 10);
-                        const max = parseInt(document.getElementById('max').value, 10);
-                        
-                        const lcg = new LCG(seed);
-                        const value = Math.floor(lcg.next() * (max - min + 1)) + min;
-                        resolve(value);
-                    }, 300); // 模拟异步操作
-                });
+                // 模拟异步操作
+                await new Promise(resolve => setTimeout(resolve, 300));
 
-                // 显示结果
-                resultElement.className = 'result-success';
+                const lcg = new LCG(elements.seed.value || Date.now());
+                const randomNumber = Math.floor(lcg.next() * 
+                    (Number(elements.max.value) - Number(elements.min.value) + 1)) + 
+                    Number(elements.min.value);
+
+                elements.result.className = 'result-success';
                 animateNumber(randomNumber);
-                
+
             } catch (error) {
                 console.error('生成错误:', error);
-                resultElement.className = 'result-error';
-                resultElement.textContent = '❌ 生成失败，请重试';
+                elements.result.className = 'result-error';
+                elements.result.textContent = '❌ 生成失败';
             } finally {
-                generateBtn.disabled = false;
+                elements.generateBtn.disabled = false;
             }
         }
 
-        // 自动聚焦第一个输入框
-        document.getElementById('min').focus();
+        // 输入实时验证
+        elements.min.addEventListener('input', () => validateInputs());
+        elements.max.addEventListener('input', () => validateInputs());
+        elements.seed.addEventListener('input', () => validateInputs());
     </script>
 </body>
 </html>
