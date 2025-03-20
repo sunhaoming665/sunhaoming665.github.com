@@ -1,62 +1,146 @@
-<DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>随机数生成器</title>
     <style>
+        :root {
+            --primary: #6366f1;  /* 主色调 */
+            --secondary: #4f46e5;
+            --success: #22c55e;  /* 成功色 */
+            --error: #ef4444;    /* 错误色 */
+            --text: #1e293b;     /* 正文颜色 */
+            --bg: linear-gradient(135deg, #f8fafc, #e2e8f0); /* 背景渐变 */
+        }
+
         body {
-            font-family: 'Segoe UI', Arial, sans-serif;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+            min-height: 100vh;
+            background: var(--bg);
             margin: 0;
+            line-height: 1.6;
         }
+
         .container {
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2.5rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+            width: min(90%, 400px);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: transform 0.3s ease;
+        }
+
+        h2 {
+            color: var(--primary);
+            font-size: 1.875rem;
+            margin-bottom: 2rem;
+            position: relative;
             text-align: center;
         }
-        .form-group {
-            margin-bottom: 20px;
+
+        h2::after {
+            content: '';
+            position: absolute;
+            bottom: -0.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: var(--primary);
+            border-radius: 2px;
         }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
         label {
             display: block;
-            margin-bottom: 5px;
-            color: #333;
+            margin-bottom: 0.5rem;
+            color: var(--text);
+            font-weight: 500;
+            text-align: left;
         }
-        input, button {
+
+        input {
             width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 16px;
+            padding: 0.875rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            transition: all 0.3s ease;
         }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+
         button {
-            background: #007bff;
+            width: 100%;
+            padding: 1rem;
+            background: var(--primary);
             color: white;
             border: none;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            font-weight: 600;
             cursor: pointer;
-            transition: background 0.3s;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
         }
+
         button:hover {
-            background: #0056b3;
+            background: var(--secondary);
+            transform: translateY(-2px);
         }
+
         #result {
-            margin-top: 30px;
-            font-size: 24px;
-            color: #28a745;
+            margin-top: 2rem;
+            padding: 1.25rem;
+            border-radius: 0.75rem;
+            background: rgba(34, 197, 94, 0.1);
+            color: var(--success);
+            font-size: 1.5rem;
+            font-weight: 700;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.4s ease;
         }
+
+        .result-show {
+            opacity: 1 !important;
+            transform: translateY(0) !important;
+        }
+
         .power-by {
-            text-align: center;
-            color: #666;
-            font-size: 14px;
             position: fixed;
-            bottom: 20px;
+            bottom: 1.5rem;
+            color: #64748b;
+            font-size: 0.875rem;
+            text-align: center;
+            width: 100%;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 1.5rem;
+                border-radius: 1rem;
+            }
+            
+            h2 {
+                font-size: 1.5rem;
+            }
         }
     </style>
 </head>
@@ -64,23 +148,29 @@
     <div class="container">
         <h2>随机数生成器</h2>
         <div class="form-group">
-            <label for="seed">随机种子（默认按时间生成）：</label>
-            <input type="text" id="seed" placeholder="输入种子值">
+            <label for="seed">🎲 随机种子</label>
+            <input type="text" id="seed" placeholder="默认使用时间戳">
         </div>
         <div class="form-group">
-            <label for="min">最小值：</label>
+            <label for="min">最小值</label>
             <input type="number" id="min" value="1">
         </div>
         <div class="form-group">
-            <label for="max">最大值：</label>
+            <label for="max">最大值</label>
             <input type="number" id="max" value="47">
         </div>
-        <button onclick="generateRandom()">生成随机数</button>
+        <button onclick="generateRandom()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                <path d="M3 3v5h5M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
+                <path d="M16 16h5v5"/>
+            </svg>
+            生成随机数
+        </button>
         <div id="result"></div>
     </div>
 
     <script>
-        // 线性同余生成器（LCG）实现伪随机数
         class Random {
             constructor(seed = Date.now()) {
                 this.seed = seed;
@@ -94,25 +184,36 @@
             }
         }
 
+        function animateResult(element) {
+            element.classList.remove('result-show');
+            void element.offsetWidth; // 触发重绘
+            element.classList.add('result-show');
+        }
+
         function generateRandom() {
             const seedInput = document.getElementById('seed').value;
             const min = parseInt(document.getElementById('min').value, 10);
             const max = parseInt(document.getElementById('max').value, 10);
+            const resultElement = document.getElementById('result');
 
             // 输入验证
             if (isNaN(min) || isNaN(max) || min >= max) {
-                alert('请输入有效范围（最小值 < 最大值）！');
+                resultElement.style.background = 'rgba(239, 68, 68, 0.1)';
+                resultElement.style.color = 'var(--error)';
+                resultElement.textContent = '❌ 请输入有效范围';
+                animateResult(resultElement);
                 return;
             }
 
-            // 使用种子初始化随机数生成器
             const random = new Random(seedInput || Date.now());
             const randomNumber = Math.floor(random.next() * (max - min + 1)) + min;
 
-            // 显示结果
-            document.getElementById('result').textContent = `随机数：${randomNumber}`;
+            resultElement.style.background = 'rgba(34, 197, 94, 0.1)';
+            resultElement.style.color = 'var(--success)';
+            resultElement.textContent = ` ✔️随机数：${randomNumber}`;
+            animateResult(resultElement);
         }
     </script>
-    <div class="power-by">power by GitHub Pages</div>
+    <div class="power-by">Powered by GitHub Pages</div>
 </body>
 </html>
