@@ -13,7 +13,7 @@
 
         body {
             background: linear-gradient(135deg, #1a1a1a, #4a4a4a);
-            height: 100vh;
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -22,42 +22,57 @@
 
         .clock-container {
             background: rgba(255, 255, 255, 0.1);
-            padding: 3rem 5rem;
-            border-radius: 20px;
-            box-shadow: 0 0 30px rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(10px);
+            padding: 4rem 6rem;
+            border-radius: 25px;
+            box-shadow: 
+                0 25px 45px rgba(0,0,0,0.25),
+                0 8px 15px rgba(0,0,0,0.15);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.1);
         }
 
         .date {
             color: #f0f0f0;
-            font-size: 2.5rem;
+            font-size: 2.4rem;
             text-align: center;
-            margin-bottom: 1.5rem;
+            margin-bottom: 2rem;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            letter-spacing: 1px;
         }
 
         .time {
             color: #00ff9d;
-            font-size: 4.5rem;
+            font-size: 5rem;
             font-weight: 700;
             text-align: center;
             letter-spacing: 3px;
             text-shadow: 0 0 15px rgba(0, 255, 157, 0.5);
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.03);
         }
 
-@media (max-width: 768px) {
-    .clock-container {
-        padding: 2rem;
-        width: 90%;
-    }
-    .date {
-        font-size: 1.8rem;
-    }
-    .time {
-        font-size: 3.5rem;
-    }
-}
+        @media (max-width: 768px) {
+            .clock-container {
+                padding: 3rem;
+                width: 90%;
+            }
+            .date {
+                font-size: 2rem;
+            }
+            .time {
+                font-size: 3.6rem;
+            }
+        }
 
+        @media (max-width: 480px) {
+            .date {
+                font-size: 1.8rem;
+            }
+            .time {
+                font-size: 3rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -67,31 +82,28 @@
     </div>
 
     <script>
-        // 初始化星期数组
         const weekDays = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"];
-
+        
         function updateDateTime() {
             const now = new Date();
             
-            // 日期部分处理
-            const year = now.getFullYear();
-            const month = (now.getMonth() + 1).toString().padStart(2, '0');
-            const day = now.getDate().toString().padStart(2, '0');
-            const weekDay = weekDays[now.getDay()];
+            const dateStr = `${now.getFullYear()}年
+                ${(now.getMonth() + 1).toString().padStart(2, '0')}月
+                ${now.getDate().toString().padStart(2, '0')}日 
+                ${weekDays[now.getDay()]}
+            `.replace(/\s+/g, ' ');
 
-            // 时间部分处理
-            const hours = now.getHours().toString().padStart(2, '0');
-            const minutes = now.getMinutes().toString().padStart(2, '0');
-            const seconds = now.getSeconds().toString().padStart(2, '0');
+            const timeStr = [
+                now.getHours().toString().padStart(2, '0'),
+                now.getMinutes().toString().padStart(2, '0'),
+                now.getSeconds().toString().padStart(2, '0')
+            ].join(':');
 
-            // 更新显示内容
-            document.getElementById('dateDisplay').textContent = 
-                `${year}年${month}月${day}日 ${weekDay}`;
-            document.getElementById('timeDisplay').textContent = 
-                `${hours}:${minutes}:${seconds}`;
+            document.getElementById('dateDisplay').textContent = dateStr;
+            document.getElementById('timeDisplay').textContent = timeStr;
         }
 
-        // 立即执行一次并设置定时器
+        // 立即更新并启动定时器
         updateDateTime();
         setInterval(updateDateTime, 1000);
     </script>
