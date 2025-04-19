@@ -293,7 +293,7 @@
 
             // 验证随机种子
             if (values.seed && !/^[\d\-]+$/.test(values.seed)) {
-                showError(elements.errors.seed, "只允许数字和减号");
+                showError(elements.errors.seed, "只允许数字");
                 elements.seed.classList.add('input-error');
                 isValid = false;
             }
