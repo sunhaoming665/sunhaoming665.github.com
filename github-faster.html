@@ -82,6 +82,28 @@
         .cta-button:hover {
             background: #218838;
         }
+
+        .alt-button {
+            display: inline-block;
+            padding: 12px 30px;
+            background: #0366d6;
+            color: white!important;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background 0.3s;
+            margin: 10px 0;
+            font-size: 0.95em;
+        }
+        .alt-button:hover {
+            background: #0056b3;
+        }
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
     </style>
 </head>
 <body>
@@ -89,7 +111,10 @@
         <div class="container">
             <h1>GitHub加速下载服务</h1>
             <p>享受极速下载体验</p>
-            <a href="https://github-faster.sunhaoming.ddns-ip.net" class="cta-button" target="_blank">立即加速</a>
+            <div class="button-group">
+                <a href="https://github-faster.sunhaoming.dpdns.org" class="cta-button" target="_blank">立即加速</a>
+                <a href="https://github-faster.sunhaoming.ddns-ip.net/" class="alt-button" target="_blank">备用加速节点</a>
+            </div>
         </div>
     </header>
 
